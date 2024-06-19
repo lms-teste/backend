@@ -14,8 +14,6 @@ import com.lms.teste.Models.User;
 import com.lms.teste.Service.UserService;
 
 
-
-
 @RestController
 @RequestMapping("/api/users")
 public class UserController{
