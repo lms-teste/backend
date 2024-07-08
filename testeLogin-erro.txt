@@ -1,0 +1,41 @@
+@Test
+    public void testLogin() {
+        // Criação de um objeto LoginRequest com dados simulados
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("usuario@teste.com");
+        loginRequest.setSenha("senha123");
+
+        // Usuário mockado retornado pelo serviço
+        User usuarioMock = new User(1L, "Usuário Teste", "senha123", "usuario@teste.com", User.Role.USER, true);
+
+        // Mock do serviço para buscar o usuário por e-mail
+        when(userService.findByEmail("usuario@teste.com")).thenReturn(usuarioMock);
+
+        // Mock do token gerado pelo Auth
+        String generatedToken = "token_gerado_corretamente"; // Aqui o token é gerado dinamicamente
+        when(auth.generateToken(anyString(), anyString(), anyString())).thenReturn(generatedToken);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String loginJson = "";
+
+        try {
+            loginJson = objectMapper.writeValueAsString(loginRequest);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            // Requisição POST para "/api/users/login"
+            mockMvc.perform(post("/api/users/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(loginJson))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.token").value(generatedToken)); // Verifica se o token retornado é o mesmo
+                                                                           // gerado
+                                                                           // codificado corretamente
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
