@@ -10,9 +10,9 @@ import com.lms.teste.Repository.UserRepository;
 
 import java.util.List;
 
-@Service
+@Service // Deve ser gerenciada com um conteineer de Inversao de controle do String
 public class UserService {
-    @Autowired
+    @Autowired // injeta uma dependencia no UserRepository
     private UserRepository userRepository;
 
     public User saveUser(User user) {
@@ -33,9 +33,9 @@ public class UserService {
     }
 
     @Transactional
-    public User createUser(User user){
+    public User createUser(User user) {
         User newUser = new User();
-        
+
         BeanUtils.copyProperties(user, newUser);
         User userCreated = userRepository.save(newUser);
 
@@ -43,8 +43,8 @@ public class UserService {
     }
 
     @Transactional
-    public User findByEmail(String Email){
+    public User findByEmail(String Email) {
         return userRepository.findByEmail(Email);
     }
-    
+
 }

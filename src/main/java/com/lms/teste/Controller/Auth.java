@@ -6,6 +6,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.lms.teste.Models.TokenRequest;
 
@@ -14,40 +15,50 @@ import java.util.Map;
 
 public class Auth {
   public String generateToken(String id, String role, String name) {
-    Map<String, Object> claims = new HashMap<>();
-    claims.put("id", id);
-    claims.put("role", role);
-    claims.put("name", name);
+    try {
 
-    String secretKey = "segredinho";
+      Map<String, Object> claims = new HashMap<>();
+      claims.put("id", id);
+      claims.put("role", role);
+      claims.put("name", name);
 
-    Algorithm algorithm = Algorithm.HMAC256(secretKey);
+      String secretKey = "segredinho";
 
-    JWTCreator.Builder jwtBuilder = JWT.create()
-        .withIssuer("auth")
-        .withSubject(id)
-        .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 *  10)); // 10 horas // 60 * 60 * 
+      Algorithm algorithm = Algorithm.HMAC256(secretKey);
 
-    for (Map.Entry<String, Object> entry : claims.entrySet()) {
-      jwtBuilder.withClaim(entry.getKey(), (String) entry.getValue());
+      JWTCreator.Builder jwtBuilder = JWT.create()
+          .withIssuer("auth")
+          .withSubject(id)
+          .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)); // 10 horas // 60 * 60 *
+
+      for (Map.Entry<String, Object> entry : claims.entrySet()) {
+        jwtBuilder.withClaim(entry.getKey(), (String) entry.getValue());
+      }
+
+      return jwtBuilder.sign(algorithm);
+    } catch (JWTVerificationException e) {
+      e.printStackTrace();
+      return null;
     }
-
-    return jwtBuilder.sign(algorithm);
   }
 
   public DecodedJWT decodeToken(TokenRequest tokenRequest) {
+    try {
 
-    String secretKey = "segredinho";
-    Algorithm algorithm = Algorithm.HMAC256(secretKey);
+      String secretKey = "segredinho";
+      Algorithm algorithm = Algorithm.HMAC256(secretKey);
 
-    JWTVerifier verifier = JWT.require(algorithm)
-        .withIssuer("auth")
-        .build(); // Reusable verifier instance
+      JWTVerifier verifier = JWT.require(algorithm)
+          .withIssuer("auth")
+          .build(); // Reusable verifier instance
 
-    DecodedJWT jwt = verifier.verify(tokenRequest.getToken());
+      DecodedJWT jwt = verifier.verify(tokenRequest.getToken());
 
-    return jwt;
+      return jwt;
+    } catch (JWTVerificationException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
-  
 
 }
