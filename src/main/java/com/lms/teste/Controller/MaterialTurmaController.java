@@ -9,15 +9,13 @@ import java.util.List;
 import com.lms.teste.Service.MaterialTurmaService;
 import com.lms.teste.Models.MaterialTurma;
 
-
 @RestController
 @RequestMapping("/api/materiais/turmas")
 public class MaterialTurmaController {
-
     @Autowired
     private MaterialTurmaService turmaService;
 
-    @PostMapping("/")
+    @PostMapping
     public MaterialTurma createTurma(@RequestParam("nomeMaterial") String nomeMaterial, @RequestParam("material") MultipartFile material) throws IOException {
         MaterialTurma turma = new MaterialTurma();
         turma.setNomeMaterial(nomeMaterial);
@@ -25,7 +23,7 @@ public class MaterialTurmaController {
         return turmaService.save(turma);
     }
 
-    @GetMapping("/")
+    @GetMapping
     public List<MaterialTurma> getAllTurmas() {
         return turmaService.findAll();
     }
@@ -33,7 +31,8 @@ public class MaterialTurmaController {
     @GetMapping("/{id}")
     public ResponseEntity<MaterialTurma> getTurmaById(@PathVariable Long id) {
         MaterialTurma turma = turmaService.findById(id);
-        if (turma != null) {
+        
+        if(turma != null) {
             return ResponseEntity.ok(turma);
         } else {
             return ResponseEntity.notFound().build();
@@ -43,7 +42,8 @@ public class MaterialTurmaController {
     @PutMapping("/{id}")
     public ResponseEntity<MaterialTurma> updateTurma(@PathVariable Long id, @RequestParam("nomeMaterial") String nomeMaterial, @RequestParam("material") MultipartFile material) throws IOException {
         MaterialTurma turma = turmaService.findById(id);
-        if (turma != null) {
+
+        if(turma != null) {
             turma.setNomeMaterial(nomeMaterial);
             turma.setMaterial(material.getBytes());
             return ResponseEntity.ok(turmaService.save(turma));

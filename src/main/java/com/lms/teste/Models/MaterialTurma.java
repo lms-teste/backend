@@ -10,7 +10,6 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "materiais_turmas")
 public class MaterialTurma {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idTurma;
@@ -22,8 +21,6 @@ public class MaterialTurma {
 
     private String nomeMaterial;
 
-    
-
     public MaterialTurma(Long idTurma, Long idMaterial, byte[] material, String nomeMaterial) {
         this.idTurma = idTurma;
         this.idMaterial = idMaterial;
@@ -31,14 +28,10 @@ public class MaterialTurma {
         this.nomeMaterial = nomeMaterial;
     }
 
-    
-
     public MaterialTurma() {
+
     }
 
-
-
-    // Getters e Setters
     public Long getIdTurma() {
         return idTurma;
     }
@@ -70,5 +63,4 @@ public class MaterialTurma {
     public void setIdMaterial(Long idMaterial) {
         this.idMaterial = idMaterial;
     }
-
 }
