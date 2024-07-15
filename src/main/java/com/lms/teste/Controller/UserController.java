@@ -10,12 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.lms.teste.Exceptions.UserNotFoundException;
 import com.lms.teste.Models.LoginRequest;
 import com.lms.teste.Models.TokenRequest;
 import com.lms.teste.Models.User;
@@ -99,8 +101,22 @@ public class UserController {
         }
     }
 
-    // (X)colocar try catch
-    // (x)colocar response para erros
-    // ()fazer teste de unidade
-    // ()fazer teste de integra
+   @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        try {
+            User userToUpdate = service.getUserById(id);
+            userToUpdate.setNome(userDetails.getNome());
+            userToUpdate.setEmail(userDetails.getEmail());
+            userToUpdate.setSenha(userDetails.getSenha());
+            userToUpdate.setPapel(userDetails.getPapel());
+            userToUpdate.setAtivo(userDetails.getAtivo());
+            User updatedUser = service.updateUser(userToUpdate);
+            return ResponseEntity.ok(updatedUser);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar usuário.");
+        }
+    }
+
 }

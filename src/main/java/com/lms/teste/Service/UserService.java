@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.lms.teste.Exceptions.UserNotFoundException;
 import com.lms.teste.Models.User;
 import com.lms.teste.Repository.UserRepository;
 
@@ -24,9 +25,12 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
     }
 
+    public User updateUser(User user) {
+        return userRepository.save(user);
+    }
     @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
