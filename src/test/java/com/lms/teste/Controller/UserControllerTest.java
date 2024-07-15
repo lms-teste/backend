@@ -48,6 +48,8 @@ public class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
+
+    // by Roger e Letícia
     @Test
     public void testGetAllUsers() {
         // Mock de dados de usuários
@@ -72,6 +74,7 @@ public class UserControllerTest {
         }
     }
 
+    // by Roger e Letícia
     @Test
     public void testCreateUser() {
         // Objeto de usuário para criar
@@ -104,6 +107,7 @@ public class UserControllerTest {
 
     }
 
+    // by Roger e Letícia
     @Test
     public void testDeleteUser() {
         // ID do usuário a ser deletado

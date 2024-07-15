@@ -29,12 +29,14 @@ public class UserServiceTest {
 
     private User user;
 
+    // by Roger e Letícia
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         user = new User(1L, "Test User", "password", "test@example.com", User.Role.ADMIN, true);
     }
 
+    // by Roger e Letícia
     @Test
     void testSaveUser() {
         when(userRepository.save(any(User.class))).thenReturn(user);
@@ -46,6 +48,7 @@ public class UserServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
+    // by Roger e Letícia
     @Test
     void testGetAllUsers() {
         List<User> userList = Arrays.asList(user,
