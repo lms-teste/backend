@@ -65,7 +65,23 @@ public class AtividadeControllerTest {
 
   @Test
   public void testGetAtividadeById() {
-    
+    // Cria novo objeto Atividade
+    Atividade atividade1 = new Atividade();
+
+    // Mock do service de Atividade
+    when(atividadeService.getById(atividade1.getId())).thenReturn(atividade1);
+
+    try {
+      // Requisição GET para "/api/atividades/"
+      mockMvc.perform(get("/api/atividades/" + atividade1.getId())
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.id").isNumber())
+          .andExpect(jsonPath("$.id").value(atividade1.getId()));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Test
