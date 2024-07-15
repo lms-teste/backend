@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,8 +43,11 @@ public class AtividadeControllerTest {
 
   @Test
   public void testListAtividade() {
-    Atividade atividade1 = new Atividade();
-    Atividade atividade2 = new Atividade();
+    //Pega data atual para criar as atividades
+    LocalDateTime data = LocalDateTime.now();
+
+    Atividade atividade1 = new Atividade(0, "Atividade 1", "Atividade teste", data, data, false, 0);
+    Atividade atividade2 = new Atividade(1, "Atividade 2", "Atividade teste", data, data, false, 0);
     //Cria uma lista com duas atividades
     List<Atividade> atividades = Arrays.asList(atividade1, atividade2);
 
@@ -65,8 +69,11 @@ public class AtividadeControllerTest {
 
   @Test
   public void testGetAtividadeById() {
+    //Pega data atual para criar uma atividade
+    LocalDateTime data = LocalDateTime.now();
+
     // Cria novo objeto Atividade
-    Atividade atividade1 = new Atividade();
+    Atividade atividade1 = new Atividade(0, "Atividade", "Atividade teste", data, data, false, 0);
 
     // Mock do service de Atividade
     when(atividadeService.getById(atividade1.getId())).thenReturn(atividade1);
@@ -78,7 +85,9 @@ public class AtividadeControllerTest {
           .andExpect(status().isOk())
           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
           .andExpect(jsonPath("$.id").isNumber())
-          .andExpect(jsonPath("$.id").value(atividade1.getId()));
+          .andExpect(jsonPath("$.id").value(atividade1.getId()))
+          .andExpect(jsonPath("$.titulo").value(atividade1.getTitulo()))
+          .andExpect(jsonPath("$.descricao").value(atividade1.getDescricao()));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -86,8 +95,11 @@ public class AtividadeControllerTest {
 
   @Test
   public void testCreateAtividade() {
+    //Pega data atual para criar uma atividade
+    LocalDateTime data = LocalDateTime.now();
+
     // Cria novo objeto Atividade
-    Atividade atividade = new Atividade();
+    Atividade atividade = new Atividade(0, "Atividade", "Atividade teste", data, data, false, 0);
 
     // Mock do service de Atividade
     when(atividadeService.save(any(Atividade.class))).thenReturn(atividade);
@@ -108,8 +120,11 @@ public class AtividadeControllerTest {
           .contentType(MediaType.APPLICATION_JSON)
           .content(atividadeJson))
           .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
           .andExpect(jsonPath("$.id").isNumber())
-          .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+          .andExpect(jsonPath("$.id").value(atividade.getId()))
+          .andExpect(jsonPath("$.titulo").value(atividade.getTitulo()))
+          .andExpect(jsonPath("$.descricao").value(atividade.getDescricao()));
     } catch (Exception e) {
       e.printStackTrace();
     }
