@@ -35,7 +35,7 @@ public class AtividadeController {
         return service.getById(atividadeId);
     }
 
-    @PostMapping
+    @PostMapping("/")
     public Atividade create(@RequestBody Atividade atividade) {
         return service.save(atividade);
     }
