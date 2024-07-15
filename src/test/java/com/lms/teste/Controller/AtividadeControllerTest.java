@@ -2,8 +2,12 @@ package com.lms.teste.Controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,12 +42,30 @@ public class AtividadeControllerTest {
 
   @Test
   public void testListAtividade() {
+    Atividade atividade1 = new Atividade();
+    Atividade atividade2 = new Atividade();
+    //Cria uma lista com duas atividades
+    List<Atividade> atividades = Arrays.asList(atividade1, atividade2);
 
+    // Mock do service de Atividade
+    when(atividadeService.list()).thenReturn(atividades);
+
+    try {
+      // Requisição GET para "/api/atividades/"
+      mockMvc.perform(get("/api/atividades/")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$[0].id").isNumber())
+          .andExpect(jsonPath("$[1].id").isNumber());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Test
   public void testGetAtividadeById() {
-
+    
   }
 
   @Test
@@ -65,7 +87,7 @@ public class AtividadeControllerTest {
     }
 
     try {
-      // Requisição POST para "/api/users/"
+      // Requisição POST para "/api/atividades/"
       mockMvc.perform(post("/api/atividades/")
           .contentType(MediaType.APPLICATION_JSON)
           .content(atividadeJson))
