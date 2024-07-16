@@ -22,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.junit.jupiter.api.DisplayName;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -32,10 +33,11 @@ import com.lms.teste.Models.LoginRequest;
 import com.lms.teste.Models.User;
 import com.lms.teste.Service.UserService;
 
+import static org.hamcrest.Matchers.*;
+
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,8 +47,55 @@ public class UserControllerTest {
     @Mock
     private Auth auth;
 
+    private User user;
+
     @InjectMocks
     private UserController userController;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    /**
+     * GetUser 
+     *  - success (user found)
+     *  - failed (user not found)
+     * 
+     * DeleteUser
+     *  - failed (user not found)
+     * 
+     * FindByEmail
+     *  - success (user found)
+     *  - failed (user not found)
+     * 
+     * CreateUser
+     *  - failed (email arealdy exists)
+     *  - failed (password min chars)
+     *  - failed (role nonexistent)
+     * 
+     * UpdateUser
+     *  - failed (email arealdy exists)
+     *  - failed (password min chars)
+     *  - failed (role nonexistent)
+     */
+
+     @Test
+    void testGetUserById_Success() throws Exception {
+        when(userService.getUserById(1L)).thenReturn(user);
+
+        mockMvc.perform(get("/users/{id}", 1L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetUserById_Failed() throws Exception {
+        when(userService.getUserById(1L)).thenThrow(new UserNotFoundException("User not found"));
+
+        mockMvc.perform(get("/users/{id}", 1L))
+                .andExpect(status().isNotFound());
+    }
+
 
     @Test
     public void testGetAllUsers() {
@@ -72,8 +121,70 @@ public class UserControllerTest {
         }
     }
 
+
     @Test
-    public void testCreateUser() {
+    public void testDeleteUser_Success() {
+        // ID do usuário a ser deletado
+        Long userId = 1L;
+
+        // Requisição DELETE para "/api/users/{id}"
+        try {
+            mockMvc.perform(delete("/api/users/{id}", userId))
+                    .andExpect(status().isOk());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Verifica se o método deleteUser foi chamado com o ID correto
+        verify(userService, times(1)).deleteUser(userId);
+
+    }
+
+    
+    @Test
+    public void testDeleteUser_Failed(){
+        Long userId = 1L;
+        doThrow(new UserNotFoundException("Usuário não encontrado")).when(userService).deleteUser(userId);
+
+        try{
+            mockMvc.perform(delete("/api/users/{id}", userId))
+                .andExpect(status().isNotFound());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testFindByEmail_Success(){
+        when(userService.findByEmail("test@example.com")).thenReturn(user);
+
+        try {
+            mockMvc.perform(get("/users/email/{email}", "test@example.com"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id", is(user.getId().intValue())))
+                    .andExpect(jsonPath("$.name", is(user.getNome())))
+                    .andExpect(jsonPath("$.email", is(user.getEmail())));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+
+    @Test
+    public void testFindByEmail_Failed(){
+        when(userService.findByEmail("test@example.com")).thenThrow(new UserNotFoundException("User not found"));
+
+        try {
+            mockMvc.perform(get("/users/email/{email}", "test@example.com"))
+                    .andExpect(status().isNotFound());
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testCreateUser_Success() {
         // Objeto de usuário para criar
         User user = new User(null, "Novo Usuário", "senha123", "novo@usuario.com", User.Role.USER, true);
 
@@ -102,29 +213,6 @@ public class UserControllerTest {
             e.printStackTrace();
         }
 
-    }
-
-    @Test
-    public void testDeleteUser() {
-        // ID do usuário a ser deletado
-        Long userId = 1L;
-
-        // Requisição DELETE para "/api/users/{id}"
-        try {
-            mockMvc.perform(delete("/api/users/{id}", userId))
-                    .andExpect(status().isOk());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Verifica se o método deleteUser foi chamado com o ID correto
-        verify(userService, times(1)).deleteUser(userId);
-
-    }
-
-     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -193,6 +281,50 @@ public class UserControllerTest {
 
         verify(userService, times(1)).getUserById(userId);
         verify(userService, times(0)).updateUser(any(User.class));
+    }
+    
+    @Test
+    public void testCreateUserFailed_EmailAlreadyExists() throws Exception {
+        when(userService.createUser(any(User.class))).thenThrow(new RuntimeException("Email already exists"));
+
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(user)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCreateUserFailed_PasswordMinLimitNotReached() throws Exception {
+        User userWithShortPassword = new User(1L, "Test User", "short", "test@example.com", User.Role.ADMIN, true);
+
+        when(userService.createUser(any(User.class))).thenThrow(new RuntimeException("Password must be at least 8 characters"));
+
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(userWithShortPassword)))
+                .andExpect(status().isBadRequest());
+    }
+    
+
+    @Test
+    public void testCreateUserFailed_RoleNonExistent() throws Exception {
+        User userWithInvalidRole = new User(1L, "Test User", "password", "test@example.com", null, true);
+
+        when(userService.createUser(any(User.class))).thenThrow(new RuntimeException("Role does not exist"));
+
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(userWithInvalidRole)))
+                .andExpect(status().isBadRequest());
+    }
+
+    
+    private static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
