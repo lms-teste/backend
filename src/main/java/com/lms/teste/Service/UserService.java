@@ -31,6 +31,7 @@ public class UserService {
     public User updateUser(User user) {
         return userRepository.save(user);
     }
+    
     @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
