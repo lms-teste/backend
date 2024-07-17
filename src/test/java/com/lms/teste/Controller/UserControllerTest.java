@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,20 +21,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lms.teste.Exceptions.UserNotFoundException;
 import com.lms.teste.Models.LoginRequest;
+import com.lms.teste.Models.TokenRequest;
 import com.lms.teste.Models.User;
 import com.lms.teste.Service.UserService;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(UserController.class)
@@ -327,4 +335,116 @@ public class UserControllerTest {
         }
     }
 
+    @Test
+    public void testLoginSuccess() {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("vamosTestar@uesb.com");
+        loginRequest.setSenha("senha123");
+
+        User user = new User();
+        user.setId(1L);
+        user.setNome("Vamos Testar");
+        user.setSenha("senha123");
+        user.setEmail("vamosTestar@uesb.com");
+        user.setPapel(User.Role.USER);
+
+        when(userService.findByEmail("vamosTestar@uesb.com")).thenReturn(user);
+        when(auth.generateToken("1", "USER", "Vamos Testar")).thenReturn("token");
+
+        ResponseEntity<?> response = userController.login(loginRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+
+        Map<String, String> responseBody = (Map<String, String>) response.getBody();
+        assertEquals("token", responseBody.get("token"));
+    }
+
+    @Test
+    public void testLoginUserNotFound() {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("userinexistente@uesb.com");
+        loginRequest.setSenha("password");
+
+        when(userService.findByEmail("userinexistente@uesb.com")).thenReturn(null);
+
+        ResponseEntity<?> response = userController.login(loginRequest);
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+    }
+
+    @Test
+    public void testLoginInvalidPassword() {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("teste@uesb.com");
+        loginRequest.setSenha("senhaErrada");
+
+        User user = new User();
+        user.setId(1L);
+        user.setNome("Usuario Teste");
+        user.setSenha("senha123");
+        user.setEmail("teste@uesb.com");
+        user.setPapel(User.Role.USER);
+
+        when(userService.findByEmail("teste@uesb.com")).thenReturn(user);
+
+        ResponseEntity<?> response = userController.login(loginRequest);
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+    }
+
+    @Test
+    public void testLoginException() {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("teste@uesb.com");
+        loginRequest.setSenha("senha123");
+
+        when(userService.findByEmail("teste@uesb.com")).thenThrow(new RuntimeException());
+
+        ResponseEntity<?> response = userController.login(loginRequest);
+        assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
+    }
+
+    @Test
+    public void testValidateTokenSuccess() {
+        TokenRequest tokenRequest = new TokenRequest();
+        tokenRequest.setToken("validToken");
+
+        DecodedJWT decodedJWT = mock(DecodedJWT.class);
+        when(decodedJWT.getSubject()).thenReturn("1");
+
+        Claim nameClaim = mock(Claim.class);
+        when(nameClaim.asString()).thenReturn("Test User");
+        when(decodedJWT.getClaim("name")).thenReturn(nameClaim);
+
+        Claim roleClaim = mock(Claim.class);
+        when(roleClaim.asString()).thenReturn("USER");
+        when(decodedJWT.getClaim("role")).thenReturn(roleClaim);
+
+        when(auth.decodeToken(tokenRequest)).thenReturn(decodedJWT);
+
+        ResponseEntity<?> response = userController.validateToken(tokenRequest);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals(1L, responseBody.get("id"));
+        assertEquals("Test User", responseBody.get("nome"));
+        assertEquals("USER", responseBody.get("papel"));
+    }
+
+    @Test
+    public void testValidateTokenEmptyToken() {
+        TokenRequest tokenRequest = new TokenRequest();
+        tokenRequest.setToken("");
+        ResponseEntity<?> response = userController.validateToken(tokenRequest);
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+    }
+
+    @Test
+    public void testValidateTokenException() {
+        TokenRequest tokenRequest = new TokenRequest();
+        tokenRequest.setToken("invalidToken");
+        when(auth.decodeToken(any(TokenRequest.class))).thenThrow(new RuntimeException());
+        ResponseEntity<?> response = userController.validateToken(tokenRequest);
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+    }
 }
