@@ -59,7 +59,14 @@ public class AtividadeControllerTest {
     // Pega data atual para criar as atividades
     data = LocalDateTime.now();
     // Cria novo objeto Atividade
-    atividade = new Atividade(1L, "Atividade 1", "Atividade teste", data, data, false, 10);
+    atividade = new Atividade(
+        1L,
+        "Atividade 1",
+        "Atividade teste",
+        data,
+        data,
+        false,
+        10);
     mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
     mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -67,7 +74,14 @@ public class AtividadeControllerTest {
 
   @Test
   public void testListAtividade() {
-    Atividade atividade2 = new Atividade(2L, "Atividade 2", "Atividade teste", data, data, false, 10);
+    Atividade atividade2 = new Atividade(
+        2L,
+        "Atividade 2",
+        "Atividade teste",
+        data,
+        data,
+        false,
+        10);
     // Cria uma lista com duas atividades
     List<Atividade> atividades = Arrays.asList(atividade, atividade2);
 
@@ -112,7 +126,8 @@ public class AtividadeControllerTest {
     Long fakeAtividadeId = 1L;
 
     // Mock do service de Atividade
-    when(atividadeService.getById(fakeAtividadeId)).thenThrow(new RuntimeException("Atividade não encontrada"));
+    when(atividadeService.getById(fakeAtividadeId)).thenThrow(
+        new RuntimeException("Atividade não encontrada"));
 
     try {
       mockMvc.perform(get("/api/atividades/{id}", fakeAtividadeId))
@@ -155,11 +170,20 @@ public class AtividadeControllerTest {
   @Test
   public void testUpdateAtividade() {
     // Cria novo objeto Atividade para atualizar a outra
-    Atividade atividadeAtualizada = new Atividade(0L, "Atividade 2", "Atividade atualizada", data, data, true, 5);
+    Atividade atividadeAtualizada = new Atividade(
+        0L,
+        "Atividade 2",
+        "Atividade atualizada",
+        data,
+        data,
+        true,
+        5);
 
     // Mock do service de Atividade
     when(atividadeService.getById(atividade.getId())).thenReturn(atividade);
-    when(atividadeService.update(any(Atividade.class), any(Long.class))).thenReturn(atividadeAtualizada);
+    when(atividadeService
+        .update(any(Atividade.class), any(Long.class)))
+        .thenReturn(atividadeAtualizada);
 
     String atividadeAtualizadaJson = "";
 
