@@ -14,10 +14,12 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -47,15 +49,27 @@ public class AtividadeControllerTest {
   @MockBean
   private AtividadeService atividadeService;
 
+  private Atividade atividade;
+  private LocalDateTime data;
+  private ObjectMapper mapper;
+
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
+    // Pega data atual para criar as atividades
+    data = LocalDateTime.now();
+    // Cria novo objeto Atividade
+    atividade = new Atividade(1L, "Atividade 1", "Atividade teste", data, data, false, 10);
+    mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+  }
+
   @Test
   public void testListAtividade() {
-    // Pega data atual para criar as atividades
-    LocalDateTime data = LocalDateTime.now();
-
-    Atividade atividade1 = new Atividade(1L, "Atividade 1", "Atividade teste", data, data, false, 10);
     Atividade atividade2 = new Atividade(2L, "Atividade 2", "Atividade teste", data, data, false, 10);
     // Cria uma lista com duas atividades
-    List<Atividade> atividades = Arrays.asList(atividade1, atividade2);
+    List<Atividade> atividades = Arrays.asList(atividade, atividade2);
 
     // Mock do service de Atividade
     when(atividadeService.list()).thenReturn(atividades);
@@ -75,22 +89,34 @@ public class AtividadeControllerTest {
 
   @Test
   public void testGetAtividadeById() {
-    // Cria novo objeto Atividade
-    Atividade atividade1 = new Atividade(1L, "Atividade", "Atividade teste", null, null, false, 10);
-
     // Mock do service de Atividade
-    when(atividadeService.getById(atividade1.getId())).thenReturn(atividade1);
+    when(atividadeService.getById(atividade.getId())).thenReturn(atividade);
 
     try {
       // Requisição GET para "/api/atividades/"
-      mockMvc.perform(get("/api/atividades/" + atividade1.getId())
+      mockMvc.perform(get("/api/atividades/" + atividade.getId())
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
           .andExpect(jsonPath("$.id").isNumber())
-          .andExpect(jsonPath("$.id").value(atividade1.getId()))
-          .andExpect(jsonPath("$.titulo").value(atividade1.getTitulo()))
-          .andExpect(jsonPath("$.descricao").value(atividade1.getDescricao()));
+          .andExpect(jsonPath("$.id").value(atividade.getId()))
+          .andExpect(jsonPath("$.titulo").value(atividade.getTitulo()))
+          .andExpect(jsonPath("$.descricao").value(atividade.getDescricao()));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void testGetByIdNotFound() {
+    Long fakeAtividadeId = 1L;
+
+    // Mock do service de Atividade
+    when(atividadeService.getById(fakeAtividadeId)).thenThrow(new RuntimeException("Atividade não encontrada"));
+
+    try {
+      mockMvc.perform(get("/api/atividades/{id}", fakeAtividadeId))
+          .andExpect(status().isNotFound());
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -98,19 +124,10 @@ public class AtividadeControllerTest {
 
   @Test
   public void testCreateAtividade() {
-    // Pega data atual para criar as atividades
-    LocalDateTime data = LocalDateTime.now();
-
-    // Cria novo objeto Atividade
-    Atividade atividade = new Atividade(0L, "Atividade", "Atividade teste", data, data, false, 10);
-
     // Mock do service de Atividade
     when(atividadeService.save(any(Atividade.class))).thenReturn(atividade);
 
     String atividadeJson = "";
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     try {
       // Escreve o objeto atividade em JSON
@@ -137,10 +154,6 @@ public class AtividadeControllerTest {
 
   @Test
   public void testUpdateAtividade() {
-    // Pega data atual para criar as atividades
-    LocalDateTime data = LocalDateTime.now();
-    // Cria novo objeto Atividade
-    Atividade atividade = new Atividade(0L, "Atividade 1", "Atividade teste", data, data, false, 8);
     // Cria novo objeto Atividade para atualizar a outra
     Atividade atividadeAtualizada = new Atividade(0L, "Atividade 2", "Atividade atualizada", data, data, true, 5);
 
@@ -149,9 +162,6 @@ public class AtividadeControllerTest {
     when(atividadeService.update(any(Atividade.class), any(Long.class))).thenReturn(atividadeAtualizada);
 
     String atividadeAtualizadaJson = "";
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     try {
       // Escreve o objeto atividade em JSON
@@ -172,6 +182,35 @@ public class AtividadeControllerTest {
           .andExpect(jsonPath("$.descricao").value(atividadeAtualizada.getDescricao()))
           .andExpect(jsonPath("$.grupo").value(atividadeAtualizada.isGrupo()))
           .andExpect(jsonPath("$.notaMaxima").value(atividadeAtualizada.getNotaMaxima()));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void testUpdateAtividadeNotFound() {
+    Long fakeAtividadeId = 1L;
+    atividade.setTitulo("Atividade 2");
+
+    // Mock do service de Atividade
+    when(atividadeService
+        .update(any(Atividade.class), any(Long.class)))
+        .thenThrow(new RuntimeException("nao foi possivel achar essa atividade"));
+
+    String atividadeJson = "";
+
+    try {
+      atividadeJson = mapper.writeValueAsString(atividade);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+    }
+
+    try {
+      mockMvc.perform(put("/api/atividades/{id}", fakeAtividadeId)
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(atividadeJson))
+          .andExpect(status().isNotFound())
+          .andExpect(content().string("nao foi possivel achar essa atividade"));
     } catch (Exception e) {
       e.printStackTrace();
     }
