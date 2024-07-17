@@ -25,7 +25,7 @@ public class AtividadeController {
 
     private final AtividadeService service;
 
-    @GetMapping
+    @GetMapping("/")
     public List<Atividade> list() {
         return service.list();
     }

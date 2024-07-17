@@ -1,9 +1,13 @@
 package com.lms.teste.Controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
@@ -23,6 +27,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.lms.teste.Models.Atividade;
 import com.lms.teste.Service.AtividadeService;
 
@@ -43,12 +49,12 @@ public class AtividadeControllerTest {
 
   @Test
   public void testListAtividade() {
-    //Pega data atual para criar as atividades
+    // Pega data atual para criar as atividades
     LocalDateTime data = LocalDateTime.now();
 
-    Atividade atividade1 = new Atividade(0, "Atividade 1", "Atividade teste", data, data, false, 0);
-    Atividade atividade2 = new Atividade(1, "Atividade 2", "Atividade teste", data, data, false, 0);
-    //Cria uma lista com duas atividades
+    Atividade atividade1 = new Atividade(1L, "Atividade 1", "Atividade teste", data, data, false, 10);
+    Atividade atividade2 = new Atividade(2L, "Atividade 2", "Atividade teste", data, data, false, 10);
+    // Cria uma lista com duas atividades
     List<Atividade> atividades = Arrays.asList(atividade1, atividade2);
 
     // Mock do service de Atividade
@@ -69,11 +75,8 @@ public class AtividadeControllerTest {
 
   @Test
   public void testGetAtividadeById() {
-    //Pega data atual para criar uma atividade
-    LocalDateTime data = LocalDateTime.now();
-
     // Cria novo objeto Atividade
-    Atividade atividade1 = new Atividade(0, "Atividade", "Atividade teste", data, data, false, 0);
+    Atividade atividade1 = new Atividade(1L, "Atividade", "Atividade teste", null, null, false, 10);
 
     // Mock do service de Atividade
     when(atividadeService.getById(atividade1.getId())).thenReturn(atividade1);
@@ -95,21 +98,23 @@ public class AtividadeControllerTest {
 
   @Test
   public void testCreateAtividade() {
-    //Pega data atual para criar uma atividade
+    // Pega data atual para criar as atividades
     LocalDateTime data = LocalDateTime.now();
 
     // Cria novo objeto Atividade
-    Atividade atividade = new Atividade(0, "Atividade", "Atividade teste", data, data, false, 0);
+    Atividade atividade = new Atividade(0L, "Atividade", "Atividade teste", data, data, false, 10);
 
     // Mock do service de Atividade
     when(atividadeService.save(any(Atividade.class))).thenReturn(atividade);
 
     String atividadeJson = "";
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     try {
       // Escreve o objeto atividade em JSON
-      atividadeJson = objectMapper.writeValueAsString(atividade);
+      atividadeJson = mapper.writeValueAsString(atividade);
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }
@@ -132,11 +137,61 @@ public class AtividadeControllerTest {
 
   @Test
   public void testUpdateAtividade() {
+    // Pega data atual para criar as atividades
+    LocalDateTime data = LocalDateTime.now();
+    // Cria novo objeto Atividade
+    Atividade atividade = new Atividade(0L, "Atividade 1", "Atividade teste", data, data, false, 8);
+    // Cria novo objeto Atividade para atualizar a outra
+    Atividade atividadeAtualizada = new Atividade(0L, "Atividade 2", "Atividade atualizada", data, data, true, 5);
 
+    // Mock do service de Atividade
+    when(atividadeService.getById(atividade.getId())).thenReturn(atividade);
+    when(atividadeService.update(any(Atividade.class), any(Long.class))).thenReturn(atividadeAtualizada);
+
+    String atividadeAtualizadaJson = "";
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+    try {
+      // Escreve o objeto atividade em JSON
+      atividadeAtualizadaJson = mapper.writeValueAsString(atividadeAtualizada);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+      return;
+    }
+
+    try {
+      // Requisição put para "/api/atividades/"
+      mockMvc.perform(put("/api/atividades/{id}", atividade.getId())
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(atividadeAtualizadaJson))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.titulo").value(atividadeAtualizada.getTitulo()))
+          .andExpect(jsonPath("$.descricao").value(atividadeAtualizada.getDescricao()))
+          .andExpect(jsonPath("$.grupo").value(atividadeAtualizada.isGrupo()))
+          .andExpect(jsonPath("$.notaMaxima").value(atividadeAtualizada.getNotaMaxima()));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Test
   public void testDeleteAtividade() {
+    // ID da atividade que será deletada
+    Long atividadeId = 1L;
 
+    // Requisição DELETE para "/api/atividade/{id}"
+    try {
+      mockMvc
+          .perform(delete("/api/atividades/{id}", atividadeId))
+          .andExpect(status().is(204));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Verifica se o método de excluir atividade foi chamado com o ID correto
+    verify(atividadeService, times(1)).delete(atividadeId);
   }
 }
