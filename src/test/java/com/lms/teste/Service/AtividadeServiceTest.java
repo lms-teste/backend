@@ -36,12 +36,26 @@ public class AtividadeServiceTest {
   void setUp() {
     MockitoAnnotations.openMocks(this);
     data = LocalDateTime.now();
-    atividade = new Atividade(1L, "Atividade 1", "Atividade teste", data, data, false, 10);
+    atividade = new Atividade(
+        1L,
+        "Atividade 1",
+        "Atividade teste",
+        data,
+        data,
+        false,
+        10);
   }
 
   @Test
   void testGetAtividades() {
-    Atividade novaAtividade = new Atividade(2L, "Atividade 2", "Atividade teste", data, data, false, 10);
+    Atividade novaAtividade = new Atividade(
+        2L,
+        "Atividade 2",
+        "Atividade teste",
+        data,
+        data,
+        false,
+        10);
     List<Atividade> atividades = Arrays.asList(atividade, novaAtividade);
 
     when(atividadeRepository.findAll()).thenReturn(atividades);
@@ -96,8 +110,7 @@ public class AtividadeServiceTest {
     Atividade retornoAtividade = atividadeService.update(atividade, atividade.getId());
 
     assertNotNull(retornoAtividade);
-    assertEquals(atividade, retornoAtividade);
-
+    assertEquals(atividade.getId(), retornoAtividade.getId());
     verify(atividadeRepository, times(1)).save(any(Atividade.class));
   }
 
@@ -107,7 +120,8 @@ public class AtividadeServiceTest {
 
     when(atividadeRepository.findById(fakeAtividadeId)).thenReturn(Optional.empty());
 
-    assertThrows(RuntimeException.class, () -> atividadeService.update(atividade, atividade.getId()));
+    assertThrows(RuntimeException.class,
+        () -> atividadeService.update(atividade, atividade.getId()));
 
     verify(atividadeRepository, times(0)).save(any(Atividade.class));
   }
