@@ -16,9 +16,9 @@ public class MaterialAtividadeController {
     private MaterialAtividadeService materialAtividadeService;
 
     @PostMapping
-    public ResponseEntity<MaterialAtividade> createAtividade(@RequestParam("nomeMaterial") String nomeMaterial,
-            @RequestParam("material") MultipartFile material) throws IOException {
+    public ResponseEntity<MaterialAtividade> createAtividade(@RequestParam("idAtividade") Long idAtividade, @RequestParam("nomeMaterial") String nomeMaterial, @RequestParam("material") MultipartFile material) throws IOException {
         MaterialAtividade materialAtividade = new MaterialAtividade();
+        materialAtividade.setIdAtividade(idAtividade);
         materialAtividade.setNomeMaterial(nomeMaterial);
         materialAtividade.setMaterial(material.getBytes());
         return ResponseEntity.ok(materialAtividadeService.save(materialAtividade));

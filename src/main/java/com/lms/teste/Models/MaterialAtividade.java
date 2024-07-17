@@ -12,6 +12,8 @@ import jakarta.persistence.Table;
 public class MaterialAtividade {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private Long idAtividade;
 
     private Long idMaterial;
@@ -21,7 +23,8 @@ public class MaterialAtividade {
 
     private String nomeMaterial;
 
-    public MaterialAtividade(Long idAtividade, Long idMaterial, byte[] material, String nomeMaterial) {
+    public MaterialAtividade(Long id, Long idAtividade, Long idMaterial, byte[] material, String nomeMaterial) {
+        this.id = id;
         this.idAtividade = idAtividade;
         this.idMaterial = idMaterial;
         this.material = material;
@@ -32,6 +35,14 @@ public class MaterialAtividade {
 
     }
 
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
     public Long getIdAtividade() {
         return idAtividade;
     }

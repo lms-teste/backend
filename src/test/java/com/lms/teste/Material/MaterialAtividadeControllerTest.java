@@ -8,10 +8,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -22,14 +20,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import com.lms.teste.Controller.MaterialAtividadeController;
 import com.lms.teste.Models.MaterialAtividade;
 import com.lms.teste.Service.MaterialAtividadeService;
 
 @WebMvcTest(MaterialAtividadeController.class)
 public class MaterialAtividadeControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -58,6 +54,7 @@ public class MaterialAtividadeControllerTest {
 
         mockMvc.perform(multipart("/api/materiais/atividades")
                 .file(file)
+                .param("idAtividade", "1")
                 .param("nomeMaterial", "Teste"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.idAtividade").value(1L))

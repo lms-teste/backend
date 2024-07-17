@@ -3,7 +3,6 @@ package com.lms.teste.Material;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import java.util.Arrays;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +40,7 @@ public class MaterialTurmaControllerTest {
 
         mockMvc.perform(multipart("/api/materiais/turmas")
                 .file("material", turma.getMaterial())
+                .param("idTurma", "1")
                 .param("nomeMaterial", turma.getNomeMaterial())
                 .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk())

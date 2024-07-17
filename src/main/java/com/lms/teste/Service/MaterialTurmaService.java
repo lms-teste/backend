@@ -1,7 +1,6 @@
 package com.lms.teste.Service;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.lms.teste.Models.MaterialTurma;
@@ -9,7 +8,6 @@ import com.lms.teste.Repository.MaterialTurmaRepository;
 
 @Service
 public class MaterialTurmaService {
-
     @Autowired
     private MaterialTurmaRepository turmaRepository;
 
@@ -28,5 +26,4 @@ public class MaterialTurmaService {
     public void deleteById(Long id) {
         turmaRepository.deleteById(id);
     }
-
 }
