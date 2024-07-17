@@ -105,7 +105,7 @@ public class AtividadeControllerTest {
 
     try {
       mockMvc.perform(get("/api/atividades/{id}", atividadeId))
-        .andExpect(status().isNotFound());
+          .andExpect(status().isNotFound());
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -187,6 +187,42 @@ public class AtividadeControllerTest {
           .andExpect(jsonPath("$.descricao").value(atividadeAtualizada.getDescricao()))
           .andExpect(jsonPath("$.grupo").value(atividadeAtualizada.isGrupo()))
           .andExpect(jsonPath("$.notaMaxima").value(atividadeAtualizada.getNotaMaxima()));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  public void testUpdateAtividadeNotFound() {
+    Long atividadeId = 1L;
+    // Pega data atual para criar as atividades
+    LocalDateTime data = LocalDateTime.now();
+    // Cria novo objeto Atividade
+    Atividade atividade = new Atividade(atividadeId, "Atividade 1", "Atividade teste", data, data, false, 8);
+    atividade.setTitulo("Atividade 2");
+
+    // Mock do service de Atividade
+    when(atividadeService
+        .update(any(Atividade.class), any(Long.class)))
+        .thenThrow(new RuntimeException("nao foi possivel achar essa atividade"));
+
+    String atividadeJson = "";
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+    try {
+      atividadeJson = mapper.writeValueAsString(atividade);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+    }
+
+    try {
+      mockMvc.perform(put("/api/atividades/{id}", atividadeId)
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(atividadeJson))
+          .andExpect(status().isNotFound())
+          .andExpect(content().string("nao foi possivel achar essa atividade"));
     } catch (Exception e) {
       e.printStackTrace();
     }
