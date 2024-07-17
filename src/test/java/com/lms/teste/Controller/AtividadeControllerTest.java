@@ -97,6 +97,21 @@ public class AtividadeControllerTest {
   }
 
   @Test
+  public void testGetByIdNotFound() {
+    Long atividadeId = 1L;
+
+    // Mock do service de Atividade
+    when(atividadeService.getById(atividadeId)).thenThrow(new RuntimeException("Atividade não encontrada"));
+
+    try {
+      mockMvc.perform(get("/api/atividades/{id}", atividadeId))
+        .andExpect(status().isNotFound());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
   public void testCreateAtividade() {
     // Pega data atual para criar as atividades
     LocalDateTime data = LocalDateTime.now();
