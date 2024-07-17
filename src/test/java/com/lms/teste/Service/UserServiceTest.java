@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -32,34 +32,6 @@ public class UserServiceTest {
     private UserService userService;
 
     private User user;
-
-    /**
-     * GetUserById 
-     *  - success (user found)
-     *  - failed (user not found)
-     * 
-     * DeleteUser
-     *  - success (user deleted successfully)
-     *  - failed (user not found)
-     * 
-     * FindByEmail
-     *  - success (user found)
-     *  - failed (user not found)
-     * 
-     * CreateUser
-     *  - success (user created)
-     *  - failed (email arealdy exists)
-     *  - failed (password min chars)
-     *  - failed (role nonexistent)
-     * 
-     * UpdateUser
-     *  - success (user found)
-     *  - failed (user not found)
-     *  - failed (email arealdy exists)
-     *  - failed (password min chars)
-     *  - failed (role nonexistent)
-     */
-
 
     @BeforeEach
     void setUp() {
@@ -90,7 +62,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void testGetUserById_Success(){
+    void testGetUserByIdSuccess(){
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         User foundUser = userService.getUserById(1L);
 
@@ -101,109 +73,16 @@ public class UserServiceTest {
     }
 
     @Test
-    void testGetUserById_Failed() {
+    void testGetUserByIdFailed() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(UserNotFoundException.class, () -> userService.getUserById(1L));
 
         verify(userRepository, times(1)).findById(1L);
     }
 
-    @Test
-    void testDeleteUser_Success() {
-        userService.deleteUser(1L);
-
-        verify(userRepository, times(1)).deleteById(1L);
-    }
 
     @Test
-    void testDeleteUser_Failed() {
-        doThrow(new UserNotFoundException("Usuário não encontrado")).when(userRepository).deleteById(1L);
-        assertThrows(UserNotFoundException.class, () -> userService.deleteUser(1L));
-
-        verify(userRepository, times(1)).deleteById(1L);
-    }
-
-    @Test
-    void testCreateUser_Success() {
-        when(userRepository.save(any(User.class))).thenReturn(user);
-        User createdUser = userService.createUser(user);
-
-        assertNotNull(createdUser);
-        assertEquals(user, createdUser);
-
-        verify(userRepository, times(1)).save(any(User.class));
-    }
-
-    @Test
-    @DisplayName("Deverá lançar uma exceção do tipo RuntimeException")
-    void testCreateUser_EmailAlreadyExists() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(user);
-        assertThrows(RuntimeException.class, () -> userService.createUser(user)); // Substitua RuntimeException por uma exceção específica
-
-        verify(userRepository, times(0)).save(any(User.class));
-    }
-
-    @Test
-    void testCreateUser_PasswordMinChars() {
-        user.setSenha("123"); // Senha com menos de 6 caracteres
-        assertThrows(RuntimeException.class, () -> userService.createUser(user)); // Substitua RuntimeException por uma exceção específica
-
-        verify(userRepository, times(0)).save(any(User.class));
-    }
-
-    @Test
-    void testCreateUser_RoleNonexistent() {
-        user.setPapel(null); // Role inexistente
-        assertThrows(RuntimeException.class, () -> userService.createUser(user)); // Substitua RuntimeException por uma exceção específica
-
-        verify(userRepository, times(0)).save(any(User.class));
-    }
-
-    @Test
-    void testUpdateUser_Success() {
-        when(userRepository.save(any(User.class))).thenReturn(user);
-        User updatedUser = userService.updateUser(user);
-
-        assertNotNull(updatedUser);
-        assertEquals(user, updatedUser);
-
-        verify(userRepository, times(1)).save(any(User.class));
-    }
-
-    @Test
-    void testUpdateUser_Failed() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(UserNotFoundException.class, () -> userService.updateUser(user));
-
-        verify(userRepository, times(0)).save(any(User.class));
-    }
-
-    @Test
-    void testUpdateUser_EmailAlreadyExists() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(user);
-        assertThrows(RuntimeException.class, () -> userService.updateUser(user)); // Substitua RuntimeException por uma exceção específica
-
-        verify(userRepository, times(0)).save(any(User.class));
-    }
-
-    @Test
-    void testUpdateUser_PasswordMinChars() {
-        user.setSenha("123"); // Senha com menos de 6 caracteres
-        assertThrows(RuntimeException.class, () -> userService.updateUser(user)); // Substitua RuntimeException por uma exceção específica
-
-        verify(userRepository, times(0)).save(any(User.class));
-    }
-
-    @Test
-    void testUpdateUser_RoleNonexistent() {
-        user.setPapel(null); // Role inexistente
-        assertThrows(RuntimeException.class, () -> userService.updateUser(user)); // Substitua RuntimeException por uma exceção específica
-
-        verify(userRepository, times(0)).save(any(User.class));
-    }
-
-    @Test
-    void testFindByEmail_Success() {
+    void testFindByEmailSuccess() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(user);
         User foundUser = userService.findByEmail("test@example.com");
 
@@ -214,14 +93,132 @@ public class UserServiceTest {
     }
 
     @Test
-    void testFindByEmail_Failed() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(null);
-        assertThrows(UserNotFoundException.class, () -> userService.findByEmail("test@example.com"));
+    public void testFindByEmailFailedUserNotFound() {
+        String email = "notfound@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(null);
 
-        verify(userRepository, times(1)).findByEmail("test@example.com");
+        assertThrows(UserNotFoundException.class, () -> {
+            userService.findByEmail(email);
+        });
     }
 
 
+    @Test
+    void testDeleteUserSuccess() {
+        userService.deleteUser(1L);
 
-   
+        verify(userRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void testDeleteUserNotFound() {
+        doThrow(new UserNotFoundException("Usuário não encontrado")).when(userRepository).deleteById(1L);
+        assertThrows(UserNotFoundException.class, () -> userService.deleteUser(1L));
+
+        verify(userRepository, times(1)).deleteById(1L);
+    }
+
+
+    @Test
+    void testCreateUserSuccess() {
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        User createdUser = userService.createUser(user);
+
+        assertNotNull(createdUser);
+        assertEquals(user, createdUser);
+
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    public void testCreateUserFailedEmailAlreadyExists() {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+
+        assertThrows(RuntimeException.class, () -> {
+            userService.createUser(user);
+        });
+
+        verify(userRepository, times(0)).save(any(User.class));
+    }
+
+    @Test
+    public void testCreateUserFailedRoleNonexistent() {
+        user.setPapel(null);
+
+        assertThrows(RuntimeException.class, () -> {
+            userService.createUser(user);
+        });
+
+        verify(userRepository, times(0)).save(any(User.class));
+    }
+
+    @Test
+    public void testCreateUserFailedPasswordMinChars() {
+        user.setSenha("123");
+
+        assertThrows(RuntimeException.class, () -> {
+            userService.createUser(user);
+        });
+
+        verify(userRepository, times(0)).save(any(User.class));
+    }
+
+
+    @Test
+    public void testUpdateUserSuccess() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        User updatedUser = userService.updateUser(user);
+        assertNotNull(updatedUser);
+        assertEquals(updatedUser.getId(), user.getId());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    public void testUpdateUserFailedUserNotFound() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> {
+            userService.updateUser(user);
+        });
+    }
+
+    @Test
+    public void testUpdateUserFailedEmailAlreadyExists() {
+        User anotherUser = new User();
+        anotherUser.setId(user.getId() + 1);
+        anotherUser.setEmail("test2@example.com");
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(anotherUser);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        assertThrows(RuntimeException.class, () -> {
+            userService.updateUser(user);
+        });
+    }
+
+    @Test
+    public void testUpdateUserFailedPasswordMinChars() {
+        user.setSenha("123"); // setting password less than minimum characters required
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        assertThrows(RuntimeException.class, () -> {
+            userService.updateUser(user);
+        });
+    }
+
+    @Test
+    public void testUpdateUserFailedRoleNonexistent() {
+        user.setPapel(null); // setting role to null
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        assertThrows(RuntimeException.class, () -> {
+            userService.updateUser(user);
+        });
+    }
+
+
 }
