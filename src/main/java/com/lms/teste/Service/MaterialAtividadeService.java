@@ -8,7 +8,6 @@ import com.lms.teste.Repository.MaterialAtividadeRepository;
 
 @Service
 public class MaterialAtividadeService {
-
     @Autowired
     private MaterialAtividadeRepository atividadeRepository;
 

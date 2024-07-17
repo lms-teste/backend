@@ -16,16 +16,17 @@ public class MaterialTurmaController {
     private MaterialTurmaService turmaService;
 
     @PostMapping
-    public MaterialTurma createTurma(@RequestParam("nomeMaterial") String nomeMaterial, @RequestParam("material") MultipartFile material) throws IOException {
+    public ResponseEntity<MaterialTurma> createTurma(@RequestParam("idTurma") Long idTurma, @RequestParam("nomeMaterial") String nomeMaterial, @RequestParam("material") MultipartFile material) throws IOException {
         MaterialTurma turma = new MaterialTurma();
+        turma.setIdTurma(idTurma);
         turma.setNomeMaterial(nomeMaterial);
         turma.setMaterial(material.getBytes());
-        return turmaService.save(turma);
+        return ResponseEntity.ok(turmaService.save(turma));
     }
 
     @GetMapping
-    public List<MaterialTurma> getAllTurmas() {
-        return turmaService.findAll();
+    public ResponseEntity<List<MaterialTurma>>getAllTurmas() {
+        return ResponseEntity.ok(turmaService.findAll());
     }
 
     @GetMapping("/{id}")
