@@ -16,17 +16,14 @@ public class MaterialAtividade {
 
     private Long idAtividade;
 
-    private Long idMaterial;
-
     @Lob
     private byte[] material;
 
     private String nomeMaterial;
 
-    public MaterialAtividade(Long id, Long idAtividade, Long idMaterial, byte[] material, String nomeMaterial) {
+    public MaterialAtividade(Long id, Long idAtividade, byte[] material, String nomeMaterial) {
         this.id = id;
         this.idAtividade = idAtividade;
-        this.idMaterial = idMaterial;
         this.material = material;
         this.nomeMaterial = nomeMaterial;
     }
@@ -65,13 +62,5 @@ public class MaterialAtividade {
 
     public void setNomeMaterial(String nomeMaterial) {
         this.nomeMaterial = nomeMaterial;
-    }
-
-    public Long getIdMaterial() {
-        return idMaterial;
-    }
-
-    public void setIdMaterial(Long idMaterial) {
-        this.idMaterial = idMaterial;
     }
 }

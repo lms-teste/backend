@@ -16,17 +16,14 @@ public class MaterialTurma {
 
     private Long idTurma;
 
-    private Long idMaterial;
-
     @Lob
     private byte[] material;
 
     private String nomeMaterial;
 
-    public MaterialTurma(Long id, Long idTurma, Long idMaterial, byte[] material, String nomeMaterial) {
+    public MaterialTurma(Long id, Long idTurma, byte[] material, String nomeMaterial) {
         this.id = id;
         this.idTurma = idTurma;
-        this.idMaterial = idMaterial;
         this.material = material;
         this.nomeMaterial = nomeMaterial;
     }
@@ -65,13 +62,5 @@ public class MaterialTurma {
 
     public void setNomeMaterial(String nomeMaterial) {
         this.nomeMaterial = nomeMaterial;
-    }
-
-    public Long getIdMaterial() {
-        return idMaterial;
-    }
-
-    public void setIdMaterial(Long idMaterial) {
-        this.idMaterial = idMaterial;
     }
 }
